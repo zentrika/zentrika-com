@@ -1,0 +1,31 @@
+name: zentrika-com-vps
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Set NEXT_PUBLIC_SITE_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL}
+    restart: always
+    environment:
+      NODE_ENV: production
+      ZENTRIKAOS_API_URL: ${ZENTRIKAOS_API_URL:-http://zentrikaos-api:8000}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?Set REVALIDATE_SECRET}
+    ports:
+      - "127.0.0.1:3100:3100"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/').then(r => process.exit(r.status < 500 ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 8s
+      retries: 10
+      start_period: 60s
+    networks:
+      zentrika_apps:
+        aliases:
+          - zentrika-com-web
+
+networks:
+  zentrika_apps:
+    external: true
+    name: zentrika_apps
